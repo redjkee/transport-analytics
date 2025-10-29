@@ -1,14 +1,8 @@
-// Проверяем что виртуальное окружение существует
-const fs = require('fs');
-if (!fs.existsSync('venv') && process.env.NODE_ENV === 'production') {
-    console.log('⚠️ Внимание: виртуальное окружение Python не найдено');
-    console.log('✅ Но это нормально для Render - зависимости установятся во время деплоя');
-}
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 const { spawn } = require('child_process');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -46,7 +40,7 @@ const upload = multer({
     }
 });
 
-// ✅ РЕАЛЬНАЯ ОБРАБОТКА С PYTHON
+// РЕАЛЬНАЯ ОБРАБОТКА С PYTHON
 app.post('/api/process-invoices', upload.array('files'), (req, res) => {
     console.log('📨 Получены файлы для обработки:', req.files.map(f => f.originalname));
     
@@ -60,10 +54,11 @@ app.post('/api/process-invoices', upload.array('files'), (req, res) => {
     // Запускаем Python скрипт
     console.log('🐍 Запускаем Python скрипт...');
     
-    const pythonExecutable = process.platform === 'win32' ? 'venv\\Scripts\\python.exe' : 'venv/bin/python3';
-    const args = ['invoice_parser.py', ...req.files.map(f => f.path)];
+    // Используем python3 для Linux
+    const pythonExecutable = 'python3';
     
-    console.log('Команда:', pythonExecutable, args.join(' '));
+    // Создаем аргументы: python3 invoice_parser.py file1.xlsx file2.xlsx
+    const args = ['invoice_parser.py', ...req.files.map(f => f.path)];
     
     const pythonProcess = spawn(pythonExecutable, args);
     
@@ -71,21 +66,17 @@ app.post('/api/process-invoices', upload.array('files'), (req, res) => {
     let errorData = '';
 
     pythonProcess.stdout.on('data', (data) => {
-        const chunk = data.toString();
-        resultData += chunk;
-        console.log('Python stdout chunk:', chunk);
+        resultData += data.toString();
+        console.log('Python stdout:', data.toString());
     });
 
     pythonProcess.stderr.on('data', (data) => {
-        const chunk = data.toString();
-        errorData += chunk;
-        console.error('Python stderr chunk:', chunk);
+        errorData += data.toString();
+        console.error('Python stderr:', data.toString());
     });
 
     pythonProcess.on('close', (code) => {
         console.log(`Python процесс завершился с кодом: ${code}`);
-        console.log('Полный stdout:', resultData);
-        console.log('Полный stderr:', errorData);
         
         // Очищаем файлы в любом случае
         req.files.forEach(file => {
@@ -98,7 +89,7 @@ app.post('/api/process-invoices', upload.array('files'), (req, res) => {
             }
         });
 
-        if (code === 0 && resultData.trim()) {
+        if (code === 0) {
             try {
                 const result = JSON.parse(resultData);
                 res.json(result);
