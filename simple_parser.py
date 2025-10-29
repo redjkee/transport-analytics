@@ -1,30 +1,24 @@
-import pandas as pd
 import openpyxl
 import re
-from pathlib import Path
-from datetime import datetime
-import os
 import sys
 import json
+from pathlib import Path
+import os
+from datetime import datetime
 
 def get_current_month():
-    """Возвращает текущий месяц на русском"""
     month_names = {
         '01': 'январь', '02': 'февраль', '03': 'март', '04': 'апрель',
         '05': 'май', '06': 'июнь', '07': 'июль', '08': 'август',
         '09': 'сентябрь', '10': 'октябрь', '11': 'ноябрь', '12': 'декабрь'
     }
-    
     current_month = datetime.now().month
     month_name = month_names.get(str(current_month).zfill(2))
-    
     print(f"📅 Используется месяц: {month_name}", file=sys.stderr)
     return month_name
 
 def find_table_structure(ws):
-    """Находит структуру таблицы по ключевым заголовкам - ТОЧНАЯ КОПИЯ ИЗ ТВОЕГО СКРИПТА"""
     print("🔍 Ищу структуру таблицы...", file=sys.stderr)
-    
     headers_positions = {}
     
     for row in ws.iter_rows():
@@ -54,7 +48,6 @@ def find_table_structure(ws):
     return headers_positions
 
 def extract_data_from_description(description):
-    """Извлекает дату, маршрут, гос. номер и фамилию водителя из описания - ТОЧНАЯ КОПИЯ"""
     description_str = str(description)
     
     # Маршрут (все до первой запятой)
@@ -79,7 +72,6 @@ def extract_data_from_description(description):
     return route, date_str, car_plate, driver_name
 
 def parse_invoice_file(file_path):
-    """Парсит один файл счета и возвращает данные - ТОЧНАЯ КОПИЯ ИЗ ТВОЕГО СКРИПТА"""
     try:
         print(f"\n🔍 Обрабатываю файл: {file_path.name}", file=sys.stderr)
         wb = openpyxl.load_workbook(file_path, data_only=True)
@@ -168,16 +160,13 @@ def parse_invoice_file(file_path):
         return []
 
 def main():
-    """Основная функция для веб-интеграции"""
     try:
         print("🚀 Запуск Python парсера...", file=sys.stderr)
         
-        # Обрабатываем файлы из аргументов командной строки
         file_paths = []
         if len(sys.argv) > 1:
             file_paths = [Path(f) for f in sys.argv[1:]]
         else:
-            # Для обратной совместимости
             input_folder = Path("uploads")
             if input_folder.exists():
                 file_paths = list(input_folder.glob("*.xlsx"))
@@ -193,9 +182,7 @@ def main():
             print(json.dumps(error_result, ensure_ascii=False))
             return
         
-        # Собираем все данные
         all_data = []
-        
         for file_path in file_paths:
             if '~' in file_path.name:
                 continue
@@ -205,24 +192,20 @@ def main():
         if not all_data:
             error_result = {
                 "success": False,
-                "error": "Не найдено данных для обработки", 
+                "error": "Не найдено данных для обработки",
                 "data": []
             }
             print(json.dumps(error_result, ensure_ascii=False))
             return
         
-        # Создаем DataFrame
-        df = pd.DataFrame(all_data)
+        # Статистика без pandas
+        total_amount = sum(item['Стоимость'] for item in all_data)
+        unique_cars = list(set(item['Гос_номер'] for item in all_data if item['Гос_номер'] != "Неизвестно"))
+        unique_drivers = list(set(item['Водитель'] for item in all_data if item['Водитель'] != "Фамилия не найдена"))
         
-        # Статистика
-        total_amount = df['Стоимость'].sum()
-        unique_cars = [x for x in df['Гос_номер'].unique() if x != "Неизвестно"]
-        unique_drivers = [x for x in df['Водитель'].unique() if x != "Фамилия не найдена"]
-        
-        # Результат для веба
         result = {
             "success": True,
-            "message": f"Обработано {len(all_data)} записей",
+            "message": f"Обработано {len(all_data)} записей из {len(file_paths)} файлов",
             "statistics": {
                 "total_records": len(all_data),
                 "total_amount": total_amount,
@@ -234,9 +217,11 @@ def main():
             "data": all_data
         }
         
+        print("✅ Python парсер завершил работу успешно", file=sys.stderr)
         print(json.dumps(result, ensure_ascii=False))
         
     except Exception as e:
+        print(f"❌ Критическая ошибка: {e}", file=sys.stderr)
         error_result = {
             "success": False,
             "error": f"Ошибка выполнения: {str(e)}",

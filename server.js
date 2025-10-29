@@ -58,7 +58,7 @@ app.post('/api/process-invoices', upload.array('files'), (req, res) => {
     const pythonExecutable = 'python3';
     
     // Создаем аргументы: python3 invoice_parser.py file1.xlsx file2.xlsx
-    const args = ['invoice_parser.py', ...req.files.map(f => f.path)];
+const args = ['simple_parser.py', ...req.files.map(f => f.path)];
     
     const pythonProcess = spawn(pythonExecutable, args);
     
