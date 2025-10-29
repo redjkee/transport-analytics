@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transport Analytics - Обработка накладных</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🚛 Transport Analytics</h1>
+        <p class="subtitle">Автоматическая обработка транспортных накладных</p>
+        
+        <!-- Область загрузки файлов -->
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <input type="file" id="fileInput" multiple accept=".xlsx" style="display: none;">
+                <div class="upload-placeholder">
+                    <div class="upload-icon">📁</div>
+                    <h3>Перетащите Excel файлы сюда</h3>
+                    <p>или нажмите для выбора файлов</p>
+                    <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
+                        Выбрать файлы
+                    </button>
+                </div>
+            </div>
+            <div class="file-list" id="fileList"></div>
+        </div>
+
+        <!-- Кнопка обработки -->
+        <div class="action-section">
+            <button class="btn-process" id="processBtn" onclick="processFiles()" disabled>
+                🔍 Обработать файлы
+            </button>
+        </div>
+
+        <!-- Прогресс бар -->
+        <div class="progress-section" id="progressSection" style="display: none;">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Обработка...</div>
+        </div>
+
+        <!-- Результаты -->
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <h2>📊 Результаты обработки</h2>
+            
+            <!-- Статистика -->
+            <div class="stats-grid" id="statsGrid"></div>
+            
+            <!-- Таблица данных -->
+            <div class="data-section">
+                <h3>Данные накладных</h3>
+                <div class="table-container">
+                    <table id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Маршрут</th>
+                                <th>Водитель</th>
+                                <th>Гос. номер</th>
+                                <th>Стоимость</th>
+                                <th>Файл</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Сообщения об ошибках -->
+        <div class="error-section" id="errorSection" style="display: none;">
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
